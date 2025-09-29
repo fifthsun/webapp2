@@ -17,8 +17,8 @@ If you don't have a package installer in your system yet (like ``pip`` or
 
 Get Babel and Pytz
 ------------------
-The i18n module depends on two libraries: ``babel`` and ``pytz`` (or
-``gaepytz``). So before we start you must add the ``babel`` and ``pytz``
+The i18n module depends on two libraries: ``babel`` and ``pytz``.
+So before we start you must add the ``babel`` and ``pytz``
 packages to your application directory (for App Engine) or install it in your
 virtual environment (for other servers).
 
@@ -26,7 +26,7 @@ For App Engine, download ``babel`` and ``pytz`` and add those libraries to
 your app directory:
 
 - Babel: http://babel.edgewall.org/
-- Pytz: http://pypi.python.org/pypi/gaepytz
+- Pytz: http://pypi.python.org/pypi/pytz
 
 For other servers, install those libraries in your system using ``pip``.
 App Engine users also need babel installed, as we use the command line
@@ -36,14 +36,14 @@ This assumes a `*nix` environment:
 .. code-block:: text
 
    $ sudo pip install babel
-   $ sudo pip install gaepytz
+   $ sudo pip install pytz
 
 Or, if you don't have pip but have ``easy_install``:
 
 .. code-block:: text
 
    $ sudo easy_install babel
-   $ sudo easy_install gaepytz
+   $ sudo easy_install pytz
 
 
 Create a directory for translations

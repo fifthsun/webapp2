@@ -34,8 +34,6 @@ class TestJinja2(unittest.TestCase):
                 'environment_args': {
                     'autoescape': True,
                     'extensions': [
-                        'jinja2.ext.autoescape',
-                        'jinja2.ext.with_',
                         'jinja2.ext.i18n',
                     ],
                 },

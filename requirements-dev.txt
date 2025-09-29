@@ -12,3 +12,4 @@ mock==5.1.0
 six==1.17.0
 gcp-devrel-py-tools==0.0.16
 greenlet==3.2.4
+ruff==0.13.2

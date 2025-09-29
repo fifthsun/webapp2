@@ -13,7 +13,7 @@ environment (for other servers).
 You can download ``babel`` and ``pytz`` from the following locations:
 
     http://babel.edgewall.org/
-    http://pypi.python.org/pypi/gaepytz
+    http://pypi.python.org/pypi/pytz
 
 .. autodata:: default_config
 

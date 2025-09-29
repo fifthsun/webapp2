@@ -20,21 +20,22 @@ from setuptools import setup
 LONG_DESCRIPTION = open('README.rst', 'r', encoding='utf-8').read()
 
 REQUIREMENTS = [
-    'webob>=1.2.0',
-    'six>=1.10.0'
+    'webob>=1.8',
+    'six>=1.17'
 ]
 
 EXTRA_REQUIREMENTS = {
-    'jinja2>=2.4',
-    'Babel>=2.2',
-    'pytz>=2015.7'
+    'jinja2>=3.1,<4.0',
+    'babel>=2.17',
+    'pytz>=2025.2',
+    'python-dateutil>=2.9',
 }
 
 setup(
     name='webapp2',
-    version='3.0.0b1',
+    version='3.0.0rc495',
     license='Apache Software License',
-    url='http://webapp2.readthedocs.org',
+    url='https://webapp2.readthedocs.org',
     description="Taking Google App Engine's webapp to the next level!",
     long_description=LONG_DESCRIPTION,
     author='The Webapp2 Maintainers',

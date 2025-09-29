@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2011 webapp2 AUTHORS.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,11 +20,28 @@ Jinja2 template support for webapp2.
 
 Learn more about Jinja2: http://jinja.pocoo.org/
 """
-import importlib
-
 import webapp2
+from jinja2 import Environment, FileSystemLoader, ModuleLoader
 
-_jinja2 = importlib.import_module("jinja2")
+try:
+    from jinja2 import select_autoescape # noqa
+    _HAS_SELECT_AUTOESCAPE = True
+except ImportError:
+    _HAS_SELECT_AUTOESCAPE = False
+
+
+def _get_jinja2_version():
+    """Get the Jinja2 version for compatibility checks."""
+    try:
+        import jinja2
+        return tuple(map(int, jinja2.__version__.split('.')[:2]))
+    except (AttributeError, ValueError):
+        return 2, 8  # Assume old version if we can't determine
+
+
+# Check if we're using Jinja2 3.x
+_JINJA2_VERSION = _get_jinja2_version()
+_IS_JINJA2_3X = _JINJA2_VERSION >= (3, 0)
 
 
 #: Default configuration values for this module. Keys are:
@@ -43,8 +59,7 @@ _jinja2 = importlib.import_module("jinja2")
 #:
 #: environment_args
 #:     Keyword arguments used to instantiate the Jinja2 environment. By
-#:     default autoescaping is enabled and two extensions are set:
-#:     ``jinja2.ext.autoescape`` and ``jinja2.ext.with_``. For production it
+#:     default autoescaping is enabled. For production it
 #:     may be a good idea to set 'auto_reload' to False -- we don't need to
 #:     check if templates changed after deployed.
 #:
@@ -53,23 +68,37 @@ _jinja2 = importlib.import_module("jinja2")
 #:
 #: filters
 #:     Extra filters for the Jinja2 environment.
-default_config = {
-    'template_path': 'templates',
-    'compiled_path': None,
-    'force_compiled': False,
-    'environment_args': {
-        'autoescape': True,
-        'extensions': [
-            'jinja2.ext.autoescape',
-            'jinja2.ext.with_',
-        ],
-    },
-    'globals': None,
-    'filters': None,
-}
+
+# Dynamic default config based on Jinja2 version
+def _get_default_config():
+    base_config = {
+        'template_path': 'templates',
+        'force_compiled': False,
+        'globals': None,
+        'filters': None,
+        'compiled_path': None,
+    }
+
+    if _IS_JINJA2_3X:
+        # Jinja2 3.x configuration
+        base_config['environment_args'] = {
+            'autoescape': True,
+            'extensions': [],
+        }
+    else:
+        # Legacy Jinja2 2.x configuration
+        base_config['environment_args'] = {
+            'autoescape': True,
+            'extensions': ['jinja2.ext.autoescape', 'jinja2.ext.with_']
+        }
+
+    return base_config
 
 
-class Jinja2(object):
+default_config = _get_default_config()
+
+
+class Jinja2:
     """Wrapper for configurable and cached Jinja2 environment.
 
     To used it, set it as a cached property in a base `RequestHandler`::
@@ -122,6 +151,22 @@ class Jinja2(object):
         kwargs = config['environment_args'].copy()
         enable_i18n = 'jinja2.ext.i18n' in kwargs.get('extensions', [])
 
+        # Handle autoescape for Jinja2 3.x
+        if 'autoescape' in kwargs and kwargs['autoescape'] is True:
+            # Jinja2 3.x prefers select_autoescape for better control
+            from jinja2 import select_autoescape
+            try:
+                kwargs['autoescape'] = select_autoescape(['html', 'xml'])
+            except ImportError:
+                # Fallback for older versions
+                kwargs['autoescape'] = True
+
+        # Clean up extensions that are now built-in
+        extensions = kwargs.get('extensions', [])
+        # Remove extensions that are now built-in in Jinja2 3.x
+        cleaned_extensions = [ext for ext in extensions if ext not in {'jinja2.ext.autoescape', 'jinja2.ext.with_'}]
+        kwargs['extensions'] = cleaned_extensions
+
         if 'loader' not in kwargs:
             template_path = config['template_path']
             compiled_path = config['compiled_path']
@@ -129,13 +174,13 @@ class Jinja2(object):
 
             if compiled_path and use_compiled:
                 # Use precompiled templates loaded from a module or zip.
-                kwargs['loader'] = _jinja2.ModuleLoader(compiled_path)
+                kwargs['loader'] = ModuleLoader(compiled_path)
             else:
                 # Parse templates for every new environment instances.
-                kwargs['loader'] = _jinja2.FileSystemLoader(template_path)
+                kwargs['loader'] = FileSystemLoader(template_path)
 
         # Initialize the environment.
-        env = _jinja2.Environment(**kwargs)
+        env = Environment(**kwargs)
 
         if config['globals']:
             env.globals.update(config['globals'])
@@ -147,8 +192,8 @@ class Jinja2(object):
             # Install i18n.
             from webapp2_extras import i18n
             env.install_gettext_callables(
-                lambda x: i18n.gettext(x),
-                lambda s, p, n: i18n.ngettext(s, p, n),
+                i18n.gettext,
+                i18n.ngettext,
                 newstyle=True)
             env.filters.update({
                 'format_date':      i18n.format_date,

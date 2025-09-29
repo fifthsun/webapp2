@@ -263,7 +263,7 @@ class AuthStore(object):
         """
         try:
             assert len(data) >= len(self.session_attributes)
-            return dict(zip(self.session_attributes, data))
+            return dict(zip(self.session_attributes, data, strict=False))
         except AssertionError:
             logging.warning(
                 'Invalid user data: %r. Expected attributes: %r.' %

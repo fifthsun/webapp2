@@ -32,11 +32,6 @@ import six
 
 import webapp2
 
-try:
-    # Monkeypatches pytz for gae.
-    import pytz.gae
-except ImportError:  # pragma: no cover
-    pass
 
 #: Default configuration values for this module. Keys are:
 #:
@@ -351,7 +346,7 @@ class I18n(object):
         if format is None:
             format = self.store.date_formats.get(key)
 
-        if format in ('short', 'medium', 'full', 'long', 'iso'):
+        if format in {'short', 'medium', 'full', 'long', 'iso'}:
             rv = self.store.date_formats.get('%s.%s' % (key, format))
             if rv is not None:
                 format = rv
@@ -613,15 +608,17 @@ class I18n(object):
     def parse_datetime(self, string):
         """Parses a date and time from a string.
 
-        This function uses the date and time formats for the locale as a hint
-        to determine the order in which the time fields appear in the string.
+        raceves: This function has been overwritten to use python-dateutil
+                 since parse_datetime was removed from babel. The locale is no
+                 longer used.
 
         :param string:
             The string containing the date and time.
         :returns:
             The parsed datetime object.
         """
-        return dates.parse_datetime(string, locale=self.locale)
+        from dateutil import parser
+        return parser.parse(string)
 
     def parse_time(self, string):
         """Parses a time from a string.
